@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>بحث عن الطالب</title>
+  <style>
+    body {
+      background-color: #f4f4f4;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input {
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #8B0000;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #a30000;
+    }
+    .student-card {
+      background-color: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>search by parent number</h1>
+  <input type="text" id="parentNumberInput" placeholder="add parent number">
+  <button onclick="searchStudent()">search</button>
+  <div id="result"></div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyB1yOD0rQw0CEeyV5vI_mkwMQij7HdtiQs",
+    authDomain: "myeduapp-2bf22.firebaseapp.com",
+    databaseURL: "https://myeduapp-2bf22-default-rtdb.firebaseio.com",
+    projectId: "myeduapp-2bf22",
+    storageBucket: "myeduapp-2bf22.appspot.com",
+    messagingSenderId: "851199925268",
+    appId: "1:851199925268:web:deb4ce8ad14fb4e1cf5b01"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function searchStudent() {
+    const parentNumber = document.getElementById('parentNumberInput').value.trim();
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = "";
+
+    if (!parentNumber) {
+      resultDiv.innerHTML = "<p>⚠️Enter parent number.</p>";
+      return;
+    }
+
+    const grade = "4";
+    db.ref(`watchedLessons/grade${grade}/${parentNumber}`).once("value", snapshot => {
+      const data = snapshot.val();
+      if (!data) {
+        resultDiv.innerHTML = "<p>🙁 there is no information.</p>";
+        return;
+      }
+
+      let output = "";
+      Object.values(data).forEach(log => {
+        output += `
+          <div class="student-card">
+            <p><strong>👦student name:</strong> ${log.studentName}</p>
+            <p><strong>📛 student number:</strong> ${log.studentNumber}</p>
+            <p><strong>🎞️ lesson watched:</strong> ${log.lessonName}</p>
+            <p><strong>⏰ time of watch:</strong> ${log.dateTime}</p>
+            <p><strong>🔑 used code:</strong> ${log.codeUsed}</p>
+          </div>
+        `;
+      });
+
+      resultDiv.innerHTML = output;
+    });
+  }
+</script>
+
+</body>
+</html>

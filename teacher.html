@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teacher Code Distributor</title>
+  <script type="module">
+    // Firebase configuration
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      update
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      databaseURL: "https://myeduapp-2bf22-default-rtdb.firebaseio.com",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    async function distributeCodes() {
+      const number = parseInt(document.getElementById("codeCount").value);
+      const codesRef = ref(db, "codes");
+      const snapshot = await get(codesRef);
+
+      if (!snapshot.exists()) {
+        alert("No codes found.");
+        return;
+      }
+
+      const allCodes = snapshot.val();
+      const available = Object.entries(allCodes)
+        .filter(([key, value]) => value === true)
+        .slice(0, number);
+
+      if (available.length < number) {
+        alert(`Only ${available.length} codes available.`);
+      }
+
+      // Show the codes
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+      const updates = {};
+      available.forEach(([code], index) => {
+        resultDiv.innerHTML += `<p>Code ${index + 1}: <strong>${code}</strong></p>`;
+        updates[`codes/${code}`] = "taken";
+      });
+
+      // Update in database
+      await update(ref(db), updates);
+    }
+
+    window.distributeCodes = distributeCodes;
+  </script>
+</head>
+<body style="font-family: Arial; padding: 20px;">
+  <h2>🎓 Teacher Code Distributor</h2>
+  <label for="codeCount">Enter number of codes to distribute:</label>
+  <input type="number" id="codeCount" min="1" />
+  <button onclick="distributeCodes()">Get Codes</button>
+
+  <div id="result" style="margin-top: 20px;"></div>
+</body>
+</html>
